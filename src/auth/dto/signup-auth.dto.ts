@@ -21,15 +21,10 @@ export class SignupAuthDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  firstName?: string;
+  firstName: string;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
   lastName?: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  phoneNumber: number;
 }
