@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-model user {
+model User {
   id        String  @id @default(uuid())
   username  String  @unique
   email     String  @unique
@@ -15,4 +15,6 @@ model user {
   firstName String
   lastName  String
   bio       String?
+
+  @@map("users")
 }
