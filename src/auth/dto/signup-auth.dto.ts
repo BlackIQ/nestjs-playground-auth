@@ -20,7 +20,7 @@ export class SignupAuthDto {
 
   @ApiProperty()
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   firstName: string;
 
   @ApiProperty()

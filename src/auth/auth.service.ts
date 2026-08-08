@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { SignupAuthDto } from './dto/signup-auth.dto.js';
 import { SigninAuthDto } from './dto/signin-auth.dto.js';
@@ -6,7 +11,10 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   async signup(signupAuthDto: SignupAuthDto) {
     const existingEmail = await this.prisma.user.findUnique({
@@ -14,7 +22,7 @@ export class AuthService {
     });
 
     if (existingEmail) {
-      throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      throw new ConflictException('Email already exists');
     }
 
     const existingUsername = await this.prisma.user.findUnique({
@@ -22,16 +30,25 @@ export class AuthService {
     });
 
     if (existingUsername) {
-      throw new HttpException('Username already exists', HttpStatus.CONFLICT);
+      throw new ConflictException('Username already exists');
     }
 
-    signupAuthDto.password = await bcrypt.hash(signupAuthDto.password, 10);
+    const hashedPassword = await bcrypt.hash(signupAuthDto.password, 10);
 
-    const { password, ...userData } = await this.prisma.user.create({
-      data: signupAuthDto,
+    const user = await this.prisma.user.create({
+      data: {
+        ...signupAuthDto,
+        password: hashedPassword,
+      },
     });
 
-    return userData;
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+    });
+
+    return {
+      accessToken,
+    };
   }
 
   async signin(signinAuthDto: SigninAuthDto) {
@@ -40,7 +57,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -49,11 +66,15 @@ export class AuthService {
     );
 
     if (!isValidPassword) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const { password, ...userData } = user;
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+    });
 
-    return userData;
+    return {
+      accessToken,
+    };
   }
 }
