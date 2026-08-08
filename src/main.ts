@@ -23,6 +23,7 @@ async function bootstrap() {
     .addTag('App', 'Application endpoints')
     .addTag('Authentication', 'Authentication endpoints')
     .addTag('User', 'User profile stuff')
+    .addBearerAuth()
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
