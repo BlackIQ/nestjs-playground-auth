@@ -1,6 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Request } from 'express';
 import { UsersService } from './users.service.js';
 import { AuthGuard } from '../auth/auth.guard.js';
 
@@ -12,7 +11,7 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Get('me')
-  me(@Req() req: Request) {
+  me(@Req() req: any) {
     console.log(req.user);
     return this.usersService.me();
   }
